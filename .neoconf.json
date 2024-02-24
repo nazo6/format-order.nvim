@@ -1,0 +1,12 @@
+{
+  "neodev": {
+    "library": {
+      "enabled": true,
+      "plugins": [
+        "nvim-lspconfig",
+        "lsp",
+        "conform.nvim"
+      ]
+    }
+  }
+}
