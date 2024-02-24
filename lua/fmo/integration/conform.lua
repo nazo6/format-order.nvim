@@ -1,37 +1,26 @@
-local root_pattern = function(pattern)
-  local search = require("lspconfig").util.root_pattern(unpack(pattern))
-  return function(path)
-    local root = search(path)
-    if root ~= nil then
-      local _, node_count = string.gsub(root, "/", "")
-      return { enabled = true, priority = node_count }
-    else
-      return { enabled = false }
-    end
-  end
-end
+local i_utils = require("fmo.integration.utils")
 
 ---@type fmo.Integration
 return {
-  formatter_generator = function(generate_opts)
-    --- @type fmo.Formatter
-    return {
-      init_condition = function()
-        return true
-      end,
-      buf_condition = function(bufnr)
-        local path = vim.api.nvim_buf_get_name(bufnr)
-        return root_pattern(generate_opts.root_pattern or {})(path)
-      end,
-      format = function(buf, opts, cb)
-        require("conform").format({
-          bufnr = buf,
-          formatters = { generate_opts.name },
-          async = opts.async,
-        }, function()
-          cb()
-        end)
-      end,
-    }
-  end,
+	formatter_generator = function(generate_opts)
+		local ok, conform_formatter = pcall(require, "conform.formatters." .. generate_opts.name)
+		if not ok then
+			vim.notify("Conform formatter not found: " .. generate_opts.name, vim.log.levels.ERROR)
+			return nil
+		end
+
+		--- @type fmo.Formatter
+		return {
+			init_condition = i_utils.get_init_condition(generate_opts),
+			buf_condition = i_utils.get_buf_condition(generate_opts),
+			format = function(buf, opts)
+				require("conform").format({
+					bufnr = buf,
+					formatters = { generate_opts.name },
+					async = opts.async,
+					timeout = opts.timeout_ms,
+				})
+			end,
+		}
+	end,
 }

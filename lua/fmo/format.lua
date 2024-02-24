@@ -11,14 +11,16 @@ local M = {}
 M.get_formatters = function(bufnr)
 	local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
 
-	local ft_fmt_group = c.get().filetypes[ft]
-	if ft_fmt_group == nil then
+	local ft_config = c.get().filetypes[ft]
+	if ft_config == nil then
 		return nil
 	end
 
+	local ft_fmt_candidate = ft_config.group
+
 	local enabled_formatter_specs = {}
 
-	for _, exclusive_fm_group in ipairs(ft_fmt_group) do
+	for _, exclusive_fm_group in ipairs(ft_fmt_candidate) do
 		for _, select_first_group in ipairs(exclusive_fm_group) do
 			local highest_priority = -1
 			local highest_priority_fm_spec = nil
@@ -55,14 +57,17 @@ M.get_formatters = function(bufnr)
 		end
 	end
 
+	if #enabled_formatter_specs == 0 and ft_config.default ~= nil then
+		table.insert(enabled_formatter_specs, ft_config.default)
+	end
+
 	return enabled_formatter_specs
 end
 
 --- Format current buffer
 --- @param format_options_arg fmo.FormatOpts|nil
---- @param cb function|nil
 --- @return fmo.FormatterSpecifier[]|nil
-M.format = function(format_options_arg, cb)
+M.format = function(format_options_arg)
 	local format_options = format_options_arg or {}
 
 	local formatter_specs = M.get_formatters(0)
@@ -90,7 +95,7 @@ M.format = function(format_options_arg, cb)
 		if fmtr == nil then
 			error("Formatter not found: " .. fm_specifier)
 		end
-		fmtr.format(0, format_options, cb or function() end)
+		fmtr.format(0, format_options)
 	end
 
 	return formatter_specs
