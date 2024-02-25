@@ -16,12 +16,19 @@ M.get_formatters = function(bufnr)
 		return nil
 	end
 
-	local ft_fmt_candidate = ft_config.group
+	local ft_fmt_groups = ft_config.groups
 
+	---@type fmo.FormatterSpecifier[]
 	local enabled_formatter_specs = {}
 
-	for _, exclusive_fm_group in ipairs(ft_fmt_candidate) do
-		for _, select_first_group in ipairs(exclusive_fm_group) do
+	for _, fmt_group in ipairs(ft_fmt_groups) do
+		if fmt_group.buf_condition ~= nil then
+			if not fmt_group.buf_condition(bufnr, enabled_formatter_specs) then
+				goto continue2
+			end
+		end
+
+		for _, select_first_group in ipairs(fmt_group.specs) do
 			local highest_priority = -1
 			local highest_priority_fm_spec = nil
 
@@ -55,10 +62,12 @@ M.get_formatters = function(bufnr)
 				break
 			end
 		end
+
+		::continue2::
 	end
 
 	if #enabled_formatter_specs == 0 and ft_config.default ~= nil then
-		table.insert(enabled_formatter_specs, ft_config.default)
+		enabled_formatter_specs = ft_config.default
 	end
 
 	return enabled_formatter_specs

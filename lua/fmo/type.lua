@@ -8,18 +8,20 @@
 --- @field fallback_lsp {no_ft: boolean?, no_formatter: boolean?}|nil
 
 --- @class fmo.FileTypeConfig
---- @field default fmo.FormatterSpecifier? Default formatter specifier for the filetype. All conditions are ignored.
---- @field group fmo.FormatterSpecifierGroup Formatter specifier group for the filetype. All conditions are checked.
+--- @field default fmo.FormatterSpecifier[]? Default formatter specifier for the filetype. All conditions are ignored.
+--- @field groups fmo.FormatterSpecifierGroup[] Formatter specifier group for the filetype. All conditions are checked.
 
 --- @class fmo.FormatterSpecifier
 --- @field type "conform"|"lsp" Integration type
 --- @field name string
---- @field init_condition fmo.InitCondition Function to check whether this formatter should be intialized. This function is called only once. Main use case is to check if the formatter is installed.
---- @field buf_condition fmo.BufCondition Function to check whether this formatter should be used for the buffer. This function is called for every buffer.
+--- @field init_condition fmo.InitCondition? Function to check whether this formatter should be intialized. This function is called only once. Main use case is to check if the formatter is installed.
+--- @field buf_condition fmo.BufCondition? Function to check whether this formatter should be used for the buffer. This function is called for every buffer.
 --- @field root_pattern string[]? Used in buf_condition. Also used to determine priority.
 --- @field filetypes string[]? Filetypes that this formatter supports. Used in buf_condition.
 
---- @alias fmo.FormatterSpecifierGroup fmo.FormatterSpecifier[][][]
+--- @class fmo.FormatterSpecifierGroup
+--- @field specs fmo.FormatterSpecifier[][]
+--- @field buf_condition nil|fun(bufnr: number, current_enabled: fmo.FormatterSpecifier[]): boolean
 
 --- @alias fmo.BufCondition fun(bufnr: number): fmo.BufConditionResult
 --- @alias fmo.BufConditionResult {enabled:true, priority:number}|{enabled:false}
