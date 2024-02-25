@@ -56,35 +56,35 @@ Setup for web development. For simplicity, only JavaScript is configured.
 
 ```lua
 local formatters = {
-	prettierd = {
-		type = "conform",
-		name = "prettierd",
-		root_pattern = {
-			-- omitted in this example
-		},
-	},
-	deno_fmt = { type = "conform", name = "deno_fmt", root_pattern = { "deno.json", "deno.jsonc" } },
+  prettierd = {
+    type = "conform",
+    name = "prettierd",
+    root_pattern = {
+      -- omitted in this example
+    },
+  },
+  deno_fmt = { type = "conform", name = "deno_fmt", root_pattern = { "deno.json", "deno.jsonc" } },
 }
 
 require("fmo").setup({
-	filetypes = {
-		javascript = {
-			groups = {
-				{
-					specs = {
-						{ { type = "lsp", name = "denols" } },
-						{ { type = "lsp", name = "biome" } },
-						{
-							formatters.prettierd,
-							formatters.deno_fmt,
-						},
-						{ { type = "lsp", name = "vtsls" } },
-					},
-				},
-			},
-			default = formatters.deno_fmt,
-		},
-	},
+  filetypes = {
+    javascript = {
+      groups = {
+        {
+          specs = {
+            { { type = "lsp", name = "denols" } },
+            { { type = "lsp", name = "biome" } },
+            {
+              formatters.prettierd,
+              formatters.deno_fmt,
+            },
+            { { type = "lsp", name = "vtsls" } },
+          },
+        },
+      },
+      default = formatters.deno_fmt,
+    },
+  },
 })
 ```
 
