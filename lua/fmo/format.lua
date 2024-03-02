@@ -67,7 +67,7 @@ M.get_formatters = function(bufnr)
 	end
 
 	if #enabled_formatter_specs == 0 and ft_config.default ~= nil then
-		enabled_formatter_specs = ft_config.default
+		enabled_formatter_specs = { ft_config.default }
 	end
 
 	return enabled_formatter_specs

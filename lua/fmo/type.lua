@@ -8,7 +8,7 @@
 --- @field fallback_lsp {no_ft: boolean?, no_formatter: boolean?}|nil
 
 --- @class fmo.FileTypeConfig
---- @field default fmo.FormatterSpecifier[]? Default formatter specifier for the filetype. All conditions are ignored.
+--- @field default fmo.FormatterSpecifier? Default formatter specifier for the filetype. All conditions are ignored.
 --- @field groups fmo.FormatterSpecifierGroup[] Formatter specifier group for the filetype. All conditions are checked.
 
 --- @class fmo.FormatterSpecifier
