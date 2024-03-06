@@ -99,12 +99,13 @@ M.format = function(format_options_arg)
 		return formatter_specs
 	end
 
+	local buf = vim.api.nvim_get_current_buf()
 	for _, fm_specifier in ipairs(formatter_specs) do
 		local fmtr = u.get_formatter(fm_specifier)
 		if fmtr == nil then
 			error("Formatter not found: " .. fm_specifier)
 		end
-		fmtr.format(0, format_options)
+		fmtr.format(buf, format_options)
 	end
 
 	return formatter_specs
