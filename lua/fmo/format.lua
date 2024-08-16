@@ -35,7 +35,7 @@ M.get_formatters = function(bufnr)
 			for _, fm_specifier in ipairs(select_first_group) do
 				local fmtr = u.get_formatter(fm_specifier)
 				if fmtr == nil then
-					vim.notify("Formatter not found: " .. fm_specifier, vim.log.levels.WARN)
+					vim.notify("Formatter not found: " .. fm_specifier.name, vim.log.levels.WARN)
 					goto continue
 				end
 

@@ -3,8 +3,8 @@ local i_utils = require("fmo.integration.utils")
 ---@type fmo.Integration
 return {
 	formatter_generator = function(generate_opts)
-		local ok, conform_formatter = pcall(require, "conform.formatters." .. generate_opts.name)
-		if not ok then
+		local conform_formatter = require("conform").formatters[generate_opts.name]
+		if not conform_formatter == nil then
 			vim.notify("Conform formatter not found: " .. generate_opts.name, vim.log.levels.ERROR)
 			return nil
 		end
