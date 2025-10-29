@@ -47,82 +47,68 @@ Config section.
 
 ## Config
 
-It is difficult to fully describe in words how this plugin works, so here is
-example code and diagrams.
-
-### Example 1: Web
-
-Setup for web development. For simplicity, only JavaScript is configured.
-
 ```lua
-local formatters = {
+---@type table<string, fmo.FormatterDef>
+local f = {
   prettierd = {
     type = "conform",
     name = "prettierd",
     root_pattern = {
-      -- omitted in this example
+      ".prettierrc",
+      ".prettierrc.json",
+      ".prettierrc.yml",
+      ".prettierrc.yaml",
+      ".prettierrc.json5",
+      ".prettierrc.js",
+      ".prettierrc.cjs",
+      ".prettierrc.mjs",
+      ".prettierrc.toml",
+      "prettier.config.js",
+      "prettier.config.cjs",
     },
   },
   deno_fmt = { type = "conform", name = "deno_fmt", root_pattern = { "deno.json", "deno.jsonc" } },
+  deno_fmt_mdx = { type = "conform", name = "deno_fmt_mdx", root_pattern = { "deno.json", "deno.jsonc" } },
+  biome = { type = "conform", name = "biome", root_pattern = { "biome.json", "biome.jsonc" } },
+  stylua = { type = "conform", name = "stylua", root_pattern = { "stylua.toml" } },
+  rust_analyzer = { type = "lsp", name = "rust_analyzer" },
+  mdx_analyzer = { type = "lsp", name = "rust_analyzer" },
+  dioxus_fmt = { type = "conform", name = "dioxus_fmt", root_pattern = { "Dioxus.toml" } },
+  ruff = { type = "conform", name = "ruff_format", root_pattern = { "pyproject.toml" } },
 }
 
-require("fmo").setup({
-  filetypes = {
-    javascript = {
-      groups = {
-        {
-          specs = {
-            { { type = "lsp", name = "denols" } },
-            { { type = "lsp", name = "biome" } },
-            {
-              formatters.prettierd,
-              formatters.deno_fmt,
-            },
-            { { type = "lsp", name = "vtsls" } },
-          },
-        },
-      },
-      default = formatters.deno_fmt,
-    },
+---@type fmo.FormatterGroup
+local common_web = {
+  f.biome,
+  { type = "lsp", name = "denols" },
+  {
+    f.prettierd,
+    f.deno_fmt,
   },
-})
-```
-
-And the diagram of the example is:
-
-```mermaid
-flowchart TD
-    classDef eb fill:cyan
-    s(["fmo.format()"])
-    s --> ift{{Filetype is...}}
-    ift -- Javascript --> group
-    ift -- Other --> ii1{{fallback_lsp.no_ft is}}
-    ii1 -- true --> fb[LSP format is executed] --> e
-    ii1 -- false -->e
-    subgraph group[ ]
-    ii{{group.buf_condition returns false}}
-    ii -- Yes --> e5
-    ii -- No --> l:d
-    l:d[LSP DenoLS]
-    l:d -- No condition matched --> l:b[LSP Biome]
-    l:d -- condition matched --> e1([Add formatter]):::eb
-    l:b -- No condition matched --> ps1
-    subgraph ps1[ ]
-    c:p[Prettierd]
-    c:df[deno_fmt]
-    end    
-    ps1 -- No condition matched --> l:v[LSP vtsls]
-    ps1 -- At least one formatter condition matched --> e2([Formatter that has higher priority is added]):::eb
-    l:v -- Condition matched --> e4([Add formatter]):::eb
-    l:v -- Condition not matched --> e5([No formatters added])
-    end
-    group --> e6([Added formatters are executed]):::eb
-    e6 --> e([end])
+}
+require("fmo").setup {
+  filetypes = {
+    html = { default = f.biome, common_web },
+    css = { default = f.biome, common_web },
+    javascript = { default = f.biome, common_web },
+    javascriptreact = { default = f.biome, common_web },
+    typescript = { default = f.biome, common_web },
+    typescriptreact = { default = f.biome, common_web },
+    json = { default = f.biome, common_web },
+    jsonc = { default = f.biome, common_web },
+    markdown = { default = f.prettierd, common_web },
+    mdx = { default = f.prettierd, common_web },
+    lua = { default = f.stylua },
+    python = { default = f.ruff },
+    rust = {
+      { f.dioxus_fmt },
+      { f.rust_analyzer },
+    }
+  },
+}
 ```
 
 ## Config detail
-
-The general flow is as explained above, but the details are described below.
 
 ### Spec
 

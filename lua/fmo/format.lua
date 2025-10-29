@@ -7,7 +7,7 @@ local M = {}
 ---Get formatters for specified buffer
 ---nil if no formatters are configured for the filetype
 ---@param bufnr number
----@return fmo.FormatterSpecifier[]|nil
+---@return fmo.FormatterDef[]|nil
 M.get_formatters = function(bufnr)
 	local ft = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
 
@@ -16,30 +16,31 @@ M.get_formatters = function(bufnr)
 		return nil
 	end
 
-	local ft_fmt_groups = ft_config.groups
+	---@type fmo.FormatterDef[]
+	local enabled_formatters = {}
 
-	---@type fmo.FormatterSpecifier[]
-	local enabled_formatter_specs = {}
-
-	for _, fmt_group in ipairs(ft_fmt_groups) do
+	for _, fmt_group in ipairs(ft_config) do
 		if fmt_group.buf_condition ~= nil then
-			if not fmt_group.buf_condition(bufnr, enabled_formatter_specs) then
+			if not fmt_group.buf_condition(bufnr, enabled_formatters) then
 				goto continue2
 			end
 		end
 
-		for _, select_first_group in ipairs(fmt_group.specs) do
+		for _, select_first_group in ipairs(fmt_group) do
 			local highest_priority = -1
 			local highest_priority_fm_spec = nil
 
-			for _, fm_specifier in ipairs(select_first_group) do
-				local fmtr = u.get_formatter(fm_specifier)
+			if type(select_first_group) ~= "table" then
+				select_first_group = { select_first_group }
+			end
+			for _, fmtr_def in ipairs(select_first_group) do
+				local fmtr = u.get_formatter(fmtr_def)
 				if fmtr == nil then
-					vim.notify("Formatter not found: " .. fm_specifier.name, vim.log.levels.WARN)
+					vim.notify("Formatter not found: " .. fmtr_def.name, vim.log.levels.WARN)
 					goto continue
 				end
 
-				local init_condition = cond.get_init_condition(u.formatter_id(fm_specifier), fmtr.init_condition)
+				local init_condition = cond.get_init_condition(u.formatter_id(fmtr_def), fmtr.init_condition)
 				if not init_condition then
 					goto continue
 				end
@@ -51,14 +52,14 @@ M.get_formatters = function(bufnr)
 
 				if buf_condition.priority > highest_priority then
 					highest_priority = buf_condition.priority
-					highest_priority_fm_spec = fm_specifier
+					highest_priority_fm_spec = fmtr_def
 				end
 
 				::continue::
 			end
 
 			if highest_priority_fm_spec ~= nil then
-				table.insert(enabled_formatter_specs, highest_priority_fm_spec)
+				table.insert(enabled_formatters, highest_priority_fm_spec)
 				break
 			end
 		end
@@ -66,16 +67,20 @@ M.get_formatters = function(bufnr)
 		::continue2::
 	end
 
-	if #enabled_formatter_specs == 0 and ft_config.default ~= nil then
-		enabled_formatter_specs = { ft_config.default }
+	if #enabled_formatters == 0 and ft_config.default ~= nil then
+		if vim.islist(ft_config.default) then
+			enabled_formatters = ft_config.default
+		else
+			enabled_formatters = { ft_config.default }
+		end
 	end
 
-	return enabled_formatter_specs
+	return enabled_formatters
 end
 
 --- Format current buffer
 --- @param format_options_arg fmo.FormatOpts|nil
---- @return fmo.FormatterSpecifier[]|nil
+--- @return fmo.FormatterDef[]|nil
 M.format = function(format_options_arg)
 	local format_options = format_options_arg or {}
 
@@ -105,6 +110,7 @@ M.format = function(format_options_arg)
 		if fmtr == nil then
 			error("Formatter not found: " .. fm_specifier)
 		end
+
 		fmtr.format(buf, format_options)
 	end
 
