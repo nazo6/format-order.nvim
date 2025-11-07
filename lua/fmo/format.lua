@@ -30,7 +30,7 @@ M.get_formatters = function(bufnr)
 			local highest_priority = -1
 			local highest_priority_fm_spec = nil
 
-			if type(select_first_group) ~= "table" then
+			if not (vim.islist(select_first_group)) then
 				select_first_group = { select_first_group }
 			end
 			for _, fmtr_def in ipairs(select_first_group) do
